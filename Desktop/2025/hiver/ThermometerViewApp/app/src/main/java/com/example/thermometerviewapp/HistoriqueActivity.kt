@@ -3,6 +3,8 @@ package com.example.thermometerviewapp
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import java.text.SimpleDateFormat
+import java.util.*
 
 class HistoriqueActivity : AppCompatActivity() {
 
@@ -48,12 +50,22 @@ class HistoriqueActivity : AppCompatActivity() {
         val cursor = db.rawQuery("SELECT * FROM temperatures ORDER BY id DESC", null)
         dataList.clear()
 
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+
         if (cursor.moveToFirst()) {
             do {
                 val tempC = cursor.getFloat(cursor.getColumnIndexOrThrow("temp_c"))
                 val tempF = cursor.getFloat(cursor.getColumnIndexOrThrow("temp_f"))
-                val timestamp = cursor.getString(cursor.getColumnIndexOrThrow("timestamp"))
-                dataList.add("🕒 $timestamp\n🌡 $tempC°C | $tempF°F")
+                val timestampStr = cursor.getString(cursor.getColumnIndexOrThrow("timestamp"))
+
+                val timestampLong = timestampStr.toLongOrNull()
+                val formattedDate = if (timestampLong != null) {
+                    dateFormat.format(Date(timestampLong))
+                } else {
+                    "???"
+                }
+
+                dataList.add("🕒 $formattedDate\n🌡 %.2f°C | %.2f°F".format(tempC, tempF))
             } while (cursor.moveToNext())
         }
         cursor.close()
